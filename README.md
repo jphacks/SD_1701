@@ -1,6 +1,6 @@
 # SHAREDULER
 
-[![Product Name](https://raw.github.com/GabLeRoux/WebMole/master/ressources/WebMole_Youtube_Video.png)](https://youtu.be/wrf6h0bsgAA)
+[![Product Name](SHAREDULER.png)](https://youtu.be/wrf6h0bsgAA)
 
 ## 製品概要
 ### 待ち合わせ X Tech
