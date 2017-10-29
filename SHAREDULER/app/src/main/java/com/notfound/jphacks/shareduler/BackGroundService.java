@@ -14,18 +14,11 @@ import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
 public class BackGroundService extends Service {
-    public BackGroundService() {
-    }
-
     // Toastを表示させるために使うハンドラ
     private Handler mHandler = new Handler();
-
     // スレッドを停止するために必要
     private boolean mThreadActive = true;
-
     private Thread mThread;
-
-
     // スレッド処理
     private Runnable mTask = new Runnable() {
 
@@ -40,6 +33,10 @@ public class BackGroundService extends Service {
             showPost("スレッド終了");
         }
     };
+
+
+    public BackGroundService() {
+    }
 
     /**
      * テキストを表示する

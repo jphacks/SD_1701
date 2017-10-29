@@ -16,36 +16,36 @@ public class MemberList {
         this.id = id;
     }
 
-    public String getName(){
+    public String getName() {
         return name;
     }
 
-    public void setName(String name){
-        this.name=name;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public int getMode(){
+    public int getMode() {
         return mode;
     }
 
-    public void setMode(int mode){
-        this.mode=mode;
+    public void setMode(int mode) {
+        this.mode = mode;
     }
 
-    public int getDistance(){
+    public int getDistance() {
         return distance;
     }
 
-    public void setDistance(int distance){
-        this.distance=distance;
+    public void setDistance(int distance) {
+        this.distance = distance;
     }
 
-    public int getTimeMIllis(){
+    public int getTimeMIllis() {
         return timeMillis;
     }
 
-    public void setTimeMillis(int timeMillis){
-        this.timeMillis=timeMillis;
+    public void setTimeMillis(int timeMillis) {
+        this.timeMillis = timeMillis;
     }
 
 }

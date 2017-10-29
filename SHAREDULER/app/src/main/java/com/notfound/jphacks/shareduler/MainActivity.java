@@ -207,7 +207,6 @@ public class MainActivity extends AppCompatActivity {
         t.commit();
 
 
-
         listView = (ListView) findViewById(R.id.miniListView);
 
         // Setup listener
@@ -269,13 +268,7 @@ public class MainActivity extends AppCompatActivity {
         caldroidFragment.refreshView();
     }
 
-    public void license(View view){
-        Intent intent;
-        intent = new Intent(this, LicenseActivity.class);
-        startActivity(intent);
-    }
-
-    public void editPref(View view){
+    public void editPref(View view) {
         Intent intent;
         intent = new Intent(this, EditPrefActivity.class);
         startActivity(intent);

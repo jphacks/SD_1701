@@ -43,7 +43,7 @@ import static java.lang.System.currentTimeMillis;
 public class AlarmService extends Service {
     NotificationCompat.Builder n;
     NotificationManager mgr;
-    // 繰り返し間隔、milisec
+    // 繰り返し間隔、millisec
     long repeatPeriod = 1000 * 60 * 3; //五分
     // setWindow()でのwindow幅、milsecs(誤差)
     long windowLengthMillis = 1000 * 10;
@@ -122,7 +122,7 @@ public class AlarmService extends Service {
         for (Integer id : Ids) {
             if (is_shared(id, cdbHelper, db)) {
                 Log.d("issue", "id=" + id + "はシェア済みかと思うのでアップデート");
-                update_serverDB(id);
+                update_serverDB(db, getApplicationContext(),id);
             } else {
                 Log.d("issue", "id=" + id + "は未シェア");
             }
@@ -131,18 +131,16 @@ public class AlarmService extends Service {
 
     }
 
-    private void update_serverDB(final int id) {
+    public static void update_serverDB(final SQLiteDatabase db, final Context context , final int localEventId) {
 
-        SharedPreferences data = getSharedPreferences("save_data", Context.MODE_PRIVATE);
+        SharedPreferences data = context.getSharedPreferences("save_data", Context.MODE_PRIVATE);
         double gps_longitude = data.getFloat("longitude", -1);
         double gps_latitude = data.getFloat("latitude", -1);
-        if(gps_latitude==-1 || gps_latitude==0 || gps_longitude==-1 || gps_longitude==0){
-            Log.d("update_server","GPS信号を入手できていません");
+        if (gps_latitude == -1 || gps_latitude == 0 || gps_longitude == -1 || gps_longitude == 0) {
+            Log.d("update_server", "GPS信号を入手できていません");
             return;
         }
 
-        DBHelper cdbHelper = new DBHelper(getApplicationContext());
-        final SQLiteDatabase db = cdbHelper.getWritableDatabase();
         // 取得
         Cursor cursor = null;
         double longitude = 0, latitude = 0;
@@ -156,7 +154,7 @@ public class AlarmService extends Service {
                     " placeName, latitude , longitude ,mode," +
                     " noticeFlag ,alertTime ,url" +
                     " from calendarData" +
-                    " where id= " + id +//一意に定まる
+                    " where id= " + localEventId +//一意に定まる
                     " limit 1" +
                     " ";
             cursor = db.rawQuery(query, null);
@@ -197,16 +195,16 @@ public class AlarmService extends Service {
         }
         final String _url = url;
         final int _mode = mode;
-        Log.d("update_server", "id=" + id + "をアップデートしまーす");
-        get_jsonfromgoogle_and_do(latitude, longitude, gps_latitude, gps_longitude, mode, new Response.Listener<String>() {
+        Log.d("update_server", "localEventId=" + localEventId + "をアップデートしまーす");
+        get_jsonfromgoogle_and_do(context, latitude, longitude, gps_latitude, gps_longitude, mode, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 int time = get_duration_from_json(response);//秒？
                 int distance = get_distance_from_json(response);
 
                 //RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-                RequestQueue queue = RequestSingleton.getInstance(getApplicationContext()).getRequestQueue();
-                SharedPreferences data = getSharedPreferences("save_data", Context.MODE_PRIVATE);
+                RequestQueue queue = RequestSingleton.getInstance(context).getRequestQueue();
+                SharedPreferences data = context.getSharedPreferences("save_data", Context.MODE_PRIVATE);
                 int userid = data.getInt("ID", -1);
                 String DB_url = "http://150.95.184.107/update_list.php?" +
                         "url=" + _url +
@@ -229,7 +227,7 @@ public class AlarmService extends Service {
                     }
                 }
                 );
-                RequestSingleton.getInstance(getApplicationContext()).addToRequestQueue(stringRequest);
+                RequestSingleton.getInstance(context).addToRequestQueue(stringRequest);
 
             }
         }, new Response.ErrorListener() {
@@ -241,7 +239,64 @@ public class AlarmService extends Service {
         return;
     }
 
+    private static int get_distance_from_json(String json) {
+        try {
+            JSONObject json_obj = new JSONObject(json);
+            //TODO:geocoder_statusを確認する
+            Log.d("get_dist_from_google", json_obj.getJSONArray("routes").getJSONObject(0).getJSONArray("legs")
+                    .getJSONObject(0).getJSONObject("distance").getString("text"));
+            return json_obj.getJSONArray("routes").getJSONObject(0).getJSONArray("legs")
+                    .getJSONObject(0).getJSONObject("distance").getInt("value");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 
+    private static int get_duration_from_json(String json) {
+        try {
+            JSONObject json_obj = new JSONObject(json);
+            //TODO:geocoder_statusを確認する
+            Log.d("get_dist_from_google", json_obj.getJSONArray("routes").getJSONObject(0).getJSONArray("legs")
+                    .getJSONObject(0).getJSONObject("duration").getString("text"));
+            return json_obj.getJSONArray("routes").getJSONObject(0).getJSONArray("legs")
+                    .getJSONObject(0).getJSONObject("duration").getInt("value");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private static void get_jsonfromgoogle_and_do(final Context context, double latitude, double longitude,
+                                                  double gps_latitude, double gps_longitude,
+                                                  int mode, Response.Listener<String> listener,
+                                                  Response.ErrorListener errlistener) {
+        RequestQueue queue = Volley.newRequestQueue(context);
+        String url = "https://maps.googleapis.com/maps/api/directions/json?" +
+                "origin=" + String.format("%.7f,%.7f", gps_latitude, gps_longitude) +
+                "&destination=" + String.format("%.7f,%.7f", latitude, longitude) +
+                "&mode=" + map_mode(mode) +
+                "&key=AIzaSyB7-l4EegDy5hi98LkPziP6vE6vbSIKOz4";
+        Log.d("get_json_from_google", url);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                listener, errlistener);
+        RequestSingleton.getInstance(context).addToRequestQueue(stringRequest);
+    }
+
+    private static String map_mode(int mode) {
+        switch (mode) {
+            case 0:
+                return "walking";
+            case 1:
+                return "bicycling";
+            case 2:
+                return "driving";
+            case 3:
+                return "transit";
+            default:
+                return "driving";
+        }
+    }
 
 
     private boolean is_shared(Integer id, DBHelper cdbHelper, SQLiteDatabase db) {
@@ -306,7 +361,6 @@ public class AlarmService extends Service {
         return result;
     }
 
-
     private void check_event_notice() {
         DBHelper cdbHelper = new DBHelper(getApplicationContext());
         final SQLiteDatabase db = cdbHelper.getWritableDatabase();
@@ -366,8 +420,8 @@ public class AlarmService extends Service {
         SharedPreferences data = getSharedPreferences("save_data", Context.MODE_PRIVATE);
         double gps_longitude = data.getFloat("longitude", -1);
         double gps_latitude = data.getFloat("latitude", -1);
-        if(gps_latitude==-1 || gps_latitude==0 || gps_longitude==-1 || gps_longitude==0){
-            Log.d("check_event_notice","GPS信号を入手できていません");
+        if (gps_latitude == -1 || gps_latitude == 0 || gps_longitude == -1 || gps_longitude == 0) {
+            Log.d("check_event_notice", "GPS信号を入手できていません");
             return;
         }
         final DB_Record rec = new DB_Record(latitude, longitude, gps_latitude, gps_longitude, id, mode, t, a, noticeFlag);
@@ -391,7 +445,7 @@ public class AlarmService extends Service {
             Log.d("check_event_notice", "距離条件を満たしませんでした");
             return;
         }
-        get_jsonfromgoogle_and_do(latitude, longitude, gps_latitude, gps_longitude, mode, new Response.Listener<String>() {
+        get_jsonfromgoogle_and_do(getApplicationContext(), latitude, longitude, gps_latitude, gps_longitude, mode, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 int dist_time_sec = get_duration_from_json(response);
@@ -417,8 +471,6 @@ public class AlarmService extends Service {
 
     }
 
-
-
     private void notice() {
         Toast.makeText(getApplicationContext(),
                 "そろそろ出発の時間です！",
@@ -437,66 +489,6 @@ public class AlarmService extends Service {
             Toast.makeText(getApplicationContext(), "データの保存に失敗しました", Toast.LENGTH_SHORT).show();
         }
         return false;
-    }
-
-
-    private int get_distance_from_json(String json) {
-        try {
-            JSONObject json_obj = new JSONObject(json);
-            //TODO:geocoder_statusを確認する
-            Log.d("get_dist_from_google", json_obj.getJSONArray("routes").getJSONObject(0).getJSONArray("legs")
-                    .getJSONObject(0).getJSONObject("distance").getString("text"));
-            return json_obj.getJSONArray("routes").getJSONObject(0).getJSONArray("legs")
-                    .getJSONObject(0).getJSONObject("distance").getInt("value");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    private int get_duration_from_json(String json) {
-        try {
-            JSONObject json_obj = new JSONObject(json);
-            //TODO:geocoder_statusを確認する
-            Log.d("get_dist_from_google", json_obj.getJSONArray("routes").getJSONObject(0).getJSONArray("legs")
-                    .getJSONObject(0).getJSONObject("duration").getString("text"));
-            return json_obj.getJSONArray("routes").getJSONObject(0).getJSONArray("legs")
-                    .getJSONObject(0).getJSONObject("duration").getInt("value");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    private void get_jsonfromgoogle_and_do(double latitude, double longitude,
-                                           double gps_latitude, double gps_longitude,
-                                           int mode, Response.Listener<String> listener,
-                                           Response.ErrorListener errlistener) {
-        RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-        String url = "https://maps.googleapis.com/maps/api/directions/json?" +
-                "origin=" + String.format("%.7f,%.7f", gps_latitude, gps_longitude) +
-                "&destination=" + String.format("%.7f,%.7f", latitude, longitude) +
-                "&mode=" + map_mode(mode) +
-                "&key=AIzaSyB7-l4EegDy5hi98LkPziP6vE6vbSIKOz4";
-        Log.d("get_json_from_google", url);
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                listener, errlistener);
-        RequestSingleton.getInstance(this).addToRequestQueue(stringRequest);
-    }
-
-    private String map_mode(int mode) {
-        switch (mode) {
-            case 0:
-                return "walking";
-            case 1:
-                return "bicycling";
-            case 2:
-                return "driving";
-            case 3:
-                return "transit";
-            default:
-                return "driving";
-        }
     }
 
     private boolean is_noticetime(int dist_time_msec, int noticeFlag, long eventtime, long a) {
@@ -549,7 +541,7 @@ public class AlarmService extends Service {
 
         // 通知バーの内容を決める
         n = new NotificationCompat.Builder(ctx)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.mipmap.icon)
                 //.setTicker("サービスが起動しました。")
                 .setWhen(currentTimeMillis())    // 時間
                 .setContentTitle("おしらせ")

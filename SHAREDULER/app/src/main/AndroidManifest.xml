@@ -43,40 +43,30 @@
             android:name=".SetNameActivity"
             android:label=""
             android:screenOrientation="portrait" />
+        <activity android:name=".EditScheduleActivity"></activity>
         <activity
-            android:name=".EditScheduleActivity"
-            >
-        </activity>
-        <activity
-            android:screenOrientation="portrait"
-            android:label=""
             android:name=".ShareScheduleActivity"
-            >
+            android:label=""
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="event" android:host="shareduler" />
+
+                <data
+                    android:host="shareduler"
+                    android:scheme="event" />
             </intent-filter>
         </activity>
         <activity
-            android:screenOrientation="portrait"
-            android:label=""
             android:name=".MemberListActivity"
-            >
-        </activity>
-        <activity
-            android:screenOrientation="portrait"
             android:label=""
+            android:screenOrientation="portrait"></activity>
+        <activity
             android:name=".EditPrefActivity"
-            >
-        </activity>
-        <activity
-            android:screenOrientation="portrait"
             android:label=""
-            android:name=".LicenseActivity"
-            >
-        </activity>
+            android:screenOrientation="portrait"></activity>
 
         <service android:name=".AlarmService"></service>
 

@@ -19,7 +19,7 @@ public class MiniCalendarAdapter extends BaseAdapter {
 
     public MiniCalendarAdapter(Context context) {
         this.context = context;
-        this.layoutInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        this.layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     public void setScheduleList(ArrayList<DaySchedule> foodList) {
@@ -43,11 +43,11 @@ public class MiniCalendarAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        convertView = layoutInflater.inflate(R.layout.mini_list_schedule,parent,false);
+        convertView = layoutInflater.inflate(R.layout.mini_list_schedule, parent, false);
 
-        ((TextView)convertView.findViewById(R.id.time)).setText(String.valueOf(sdf.format(scheduleList.get(position).getTime())));
-        ((TextView)convertView.findViewById(R.id.schedule)).setText(String.valueOf(scheduleList.get(position).getSchedule()));
-        ((TextView)convertView.findViewById(R.id.location)).setText("@ " + String.valueOf(scheduleList.get(position).getLocation()));
+        ((TextView) convertView.findViewById(R.id.time)).setText(String.valueOf(sdf.format(scheduleList.get(position).getTime())));
+        ((TextView) convertView.findViewById(R.id.schedule)).setText(String.valueOf(scheduleList.get(position).getSchedule()));
+        ((TextView) convertView.findViewById(R.id.location)).setText("@ " + String.valueOf(scheduleList.get(position).getLocation()));
 
 
         return convertView;

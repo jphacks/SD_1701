@@ -7,35 +7,8 @@
         jumboMode="true"
         optimize="true"
         revision="26.0.2"
-        sha1="719e67bbb3c0b250e17dce79663fa6527bd1e549">
+        sha1="e4f21b9922573323a05bd467a0cd6948f0f41524">
         <dex dex="/home/suzu/program/android/SHAREDULER/app/build/intermediates/transforms/dex/debug/folders/1000/10000/instant-run-bootstrap_4322050015feaaddf6bd49d6dcbab02aca0ed03c/classes.dex" />
-    </item>
-    <item
-        is-multidex="false"
-        jar="/home/suzu/.gradle/caches/modules-2/files-2.1/com.squareup.okio/okio/1.13.0/a9283170b7305c8d92d25aff02a6ab7e45d06cbe/okio-1.13.0.jar"
-        jumboMode="false"
-        optimize="true"
-        revision="26.0.2"
-        sha1="a9283170b7305c8d92d25aff02a6ab7e45d06cbe">
-        <dex dex="/home/suzu/program/android/SHAREDULER/app/build/intermediates/pre-dexed/debug/okio-1.13.0_d2f103f244b57f061d6869944abc3a78e4da63a9.jar" />
-    </item>
-    <item
-        is-multidex="false"
-        jar="/home/suzu/.gradle/caches/modules-2/files-2.1/com.squareup.okhttp3/okhttp/3.9.0/1b6c10b5120995a7542c1a31b7828fb8593c8ba/okhttp-3.9.0.jar"
-        jumboMode="false"
-        optimize="true"
-        revision="26.0.2"
-        sha1="01b6c10b5120995a7542c1a31b7828fb8593c8ba">
-        <dex dex="/home/suzu/program/android/SHAREDULER/app/build/intermediates/pre-dexed/debug/okhttp-3.9.0_cf90b9a0bb40a07f589ea51b256cb09e109f8546.jar" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="/home/suzu/program/android/SHAREDULER/app/build/intermediates/incremental-runtime-classes/debug/instant-run.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="26.0.2"
-        sha1="3be78ebc2706b2e1fe2f12d5726887a92d6c183b">
-        <dex dex="/home/suzu/program/android/SHAREDULER/app/build/intermediates/transforms/dex/debug/folders/1000/10000/instant-run_90f7ad913b09f4a2e9dbac84c17ddb677da8506b/classes.dex" />
     </item>
 
 </items>

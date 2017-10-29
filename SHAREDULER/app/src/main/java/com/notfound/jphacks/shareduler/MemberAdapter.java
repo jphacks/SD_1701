@@ -8,9 +8,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Locale;
 
 public class MemberAdapter extends BaseAdapter {
     Context context;
@@ -19,7 +17,7 @@ public class MemberAdapter extends BaseAdapter {
 
     public MemberAdapter(Context context) {
         this.context = context;
-        this.layoutInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        this.layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     public void setMemberList(ArrayList<MemberList> member) {
@@ -43,29 +41,28 @@ public class MemberAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        convertView = layoutInflater.inflate(R.layout.list_member,parent,false);
+        convertView = layoutInflater.inflate(R.layout.list_member, parent, false);
 
 
-
-        ((TextView)convertView.findViewById(R.id.name)).setText(String.valueOf(member.get(position).getName()));
-        ((TextView)convertView.findViewById(R.id.distance)).setText(String.valueOf(member.get(position).getDistance()/1000) +"km");
-        ((TextView)convertView.findViewById(R.id.timeMillis)).setText(String.valueOf(member.get(position).getTimeMIllis())+"分");
+        ((TextView) convertView.findViewById(R.id.name)).setText(String.valueOf(member.get(position).getName()));
+        ((TextView) convertView.findViewById(R.id.distance)).setText(String.valueOf(member.get(position).getDistance() / 1000) + "km");
+        ((TextView) convertView.findViewById(R.id.timeMillis)).setText(String.valueOf(member.get(position).getTimeMIllis() / 60000) + "分");
         int mode = member.get(position).getMode();
         int imageicon;
-        if(mode==0){
+        if (mode == 0) {
             //str="歩き";
-            imageicon=R.drawable.ic_run;
-        }else if(mode==2){
+            imageicon = R.drawable.ic_run;
+        } else if (mode == 2) {
             //str="車";
-            imageicon=R.drawable.ic_car;
-        }else if(mode==3){
+            imageicon = R.drawable.ic_car;
+        } else if (mode == 3) {
             //str="交通機関";
-            imageicon=R.drawable.ic_bus;
-        }else {
+            imageicon = R.drawable.ic_bus;
+        } else {
             //str="自転車";
-            imageicon=R.drawable.ic_bicycle;
+            imageicon = R.drawable.ic_bicycle;
         }
-        ((ImageView)convertView.findViewById(R.id.mode)).setImageResource(imageicon);
+        ((ImageView) convertView.findViewById(R.id.mode)).setImageResource(imageicon);
 
 
         return convertView;

@@ -1,8 +1,6 @@
 package com.notfound.jphacks.shareduler;
 
 
-import android.app.Activity;
-import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.ContentValues;
 import android.content.Context;
@@ -12,18 +10,14 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
-import android.widget.DatePicker;
 import android.widget.Toast;
 
 import com.google.android.gms.location.places.Place;
@@ -37,7 +31,7 @@ import java.util.Locale;
 
 public class EditScheduleActivity extends AppCompatActivity implements TimePickerDialog.OnTimeSetListener {
 
-    int PLACE_PICKER_REQUEST = 1;
+    int PLACE_PICKER_REQUEST = 124;
     private TextView dateTextView;
     private TextView timeTextView;
     private EditText editTextSchedule;
@@ -46,6 +40,8 @@ public class EditScheduleActivity extends AppCompatActivity implements TimePicke
     private int minute = 0;
     private double latitude = 200;
     private double longitude = 200;
+    private int mode = 0;
+    private long alertTime = 300000;
     private boolean enableEdit = true;
 
     @Override
@@ -55,9 +51,11 @@ public class EditScheduleActivity extends AppCompatActivity implements TimePicke
 
         final ContentValues val = new ContentValues();
         SharedPreferences data = getSharedPreferences("save_data", Context.MODE_PRIVATE);
-        int ci = data.getInt("ID",-1);
+        int ci = data.getInt("ID", -1);
         val.put("creatorName", ci);
         val.put("mode", data.getInt("MODE", 0));
+        mode = data.getInt("MODE", 0);
+        alertTime = data.getLong("ALERT", 300000);
         val.put("alertTime", data.getLong("ALERT", 300000));
 
         // 前のactivityからidの受け取り
@@ -74,37 +72,45 @@ public class EditScheduleActivity extends AppCompatActivity implements TimePicke
         Date d = new Date();
         d.setTime(time);
         dateTextView.setText(sdf.format(d));
-        timeTextView.setText(String.format(Locale.JAPAN, "%02d:%02d", hour, minute));
+
+        Calendar cal = Calendar.getInstance();
+        timeTextView.setText(String.format(Locale.JAPAN, "%02d:%02d", cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE)));
 
         // DB
         DBHelper cdbHelper = new DBHelper(this);
         final SQLiteDatabase db = cdbHelper.getWritableDatabase();
+        String url = null;
 
         Cursor cursor = null;
 
-        if(id>=0) {
-            try{
-                String query ="select id, schedule, dateMillis, placeName, url" +
+        if (id >= 0) {
+            try {
+                String query = "select id, schedule, dateMillis, placeName, url, mode, alertTime" +
                         " from calendarData" +
                         " where id = " + String.valueOf(id) +
                         " ";
                 cursor = db.rawQuery(query, null);
 
-                int indexSchedule = cursor.getColumnIndex( "schedule" );
-                int indexTime = cursor.getColumnIndex( "dateMillis" );
-                int indexPlace = cursor.getColumnIndex( "placeName" );
-                int indexURL = cursor.getColumnIndex( "url" );
+                int indexSchedule = cursor.getColumnIndex("schedule");
+                int indexTime = cursor.getColumnIndex("dateMillis");
+                int indexPlace = cursor.getColumnIndex("placeName");
+                int indexURL = cursor.getColumnIndex("url");
+                int indexMode = cursor.getColumnIndex("mode");
+                int indexAlert = cursor.getColumnIndex("alertTime");
 
-                while( cursor.moveToNext() ){
+                while (cursor.moveToNext()) {
                     // 検索結果をCursorから取り出す
-                    String schedule  = cursor.getString(indexSchedule);
+                    String schedule = cursor.getString(indexSchedule);
                     long t = cursor.getLong(indexTime);
                     String location  = cursor.getString(indexPlace);
-                    String url  = cursor.getString(indexURL);
+                    url  = cursor.getString(indexURL);
                     if(url!=null){
                         enableEdit = false;
                         editTextSchedule.setFocusable(false);
                     }
+                    mode = cursor.getInt(indexMode);
+                    alertTime = cursor.getLong(indexAlert);
+
 
                     editTextSchedule.setText(schedule);
                     editTextLocation.setText(location);
@@ -115,25 +121,25 @@ public class EditScheduleActivity extends AppCompatActivity implements TimePicke
                     timeTextView.setText(String.format(Locale.JAPAN, "%02d:%02d", c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE)));
 
                 }
-            }
-            finally{
+            } finally {
                 // Cursorを忘れずにcloseする
-                if( cursor != null ){
+                if (cursor != null) {
                     cursor.close();
                 }
             }
 
         }
 
+        final String _url = url;
         findViewById(R.id.buttonSave).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // クリック時の処理
                 String text = editTextSchedule.getText().toString();
                 String location = editTextLocation.getText().toString();
-                if(text.length() == 0){
+                if (text.length() == 0) {
                     Toast.makeText(v.getContext(), "スケジュール名を入力してください", Toast.LENGTH_SHORT).show();
-                } else if (location.length() == 0){
+                } else if (location.length() == 0) {
                     Toast.makeText(v.getContext(), "場所を入力してください", Toast.LENGTH_SHORT).show();
                 } else {
                     // 既存のスケジュールの編集の場合
@@ -150,6 +156,9 @@ public class EditScheduleActivity extends AppCompatActivity implements TimePicke
                         val.put("longitude", longitude);
                         try {
                             db.update("calendarData", val, "id = " + String.valueOf(id), null);
+                            if(_url!=null){
+                                AlarmService.update_serverDB(db, getApplicationContext(), (int)id);
+                            }
                         } catch (Exception e) {
                             Toast.makeText(v.getContext(), "データの保存に失敗しました", Toast.LENGTH_SHORT).show();
                         }
@@ -169,7 +178,7 @@ public class EditScheduleActivity extends AppCompatActivity implements TimePicke
                         val.put("latitude", latitude);
                         val.put("longitude", longitude);
                         try {
-                            db.insert( "calendarData", null, val);
+                            db.insert("calendarData", null, val);
                         } catch (Exception e) {
                             Toast.makeText(v.getContext(), "データの保存に失敗しました", Toast.LENGTH_SHORT).show();
                         }
@@ -181,7 +190,7 @@ public class EditScheduleActivity extends AppCompatActivity implements TimePicke
         });
 
 
-           // Adapterの作成
+        // Adapterの作成
         //移動手段
         ArrayAdapter<String> adapter1 = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
         adapter1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -196,6 +205,7 @@ public class EditScheduleActivity extends AppCompatActivity implements TimePicke
         Spinner spinner1 = (Spinner) findViewById(R.id.spinner1);
         // SpinnerにAdapterを設定
         spinner1.setAdapter(adapter1);
+        spinner1.setSelection(this.mode);
 
         spinner1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -204,13 +214,13 @@ public class EditScheduleActivity extends AppCompatActivity implements TimePicke
                 // 選択したアイテムを取得
                 String item = (String) spinner1.getSelectedItem();
                 int mode;
-                if(item=="徒歩"){
-                    mode=0;
-                }else if(item=="自転車"){
-                    mode=1;
-                }else if(item=="車"){
-                    mode=2;
-                }else {
+                if (item == "徒歩") {
+                    mode = 0;
+                } else if (item == "自転車") {
+                    mode = 1;
+                } else if (item == "車") {
+                    mode = 2;
+                } else {
                     mode = 3;
                 }
                 val.put("mode", mode);
@@ -232,6 +242,15 @@ public class EditScheduleActivity extends AppCompatActivity implements TimePicke
         Spinner spinner2 = (Spinner) findViewById(R.id.spinner2);
 // SpinnerにAdapterを設定
         spinner2.setAdapter(adapter2);
+        if (alertTime == 300000) {
+            spinner2.setSelection(0);
+        } else if (alertTime == 900000) {
+            spinner2.setSelection(1);
+        } else if (alertTime == 1800000) {
+            spinner2.setSelection(2);
+        } else {
+            spinner2.setSelection(3);
+        }
 
 
         spinner2.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -241,14 +260,14 @@ public class EditScheduleActivity extends AppCompatActivity implements TimePicke
                 // 選択したアイテムを取得
                 String item = (String) spinner2.getSelectedItem();
                 long tm;
-                if(item=="5分前"){
-                    tm=300000;
-                }else if(item=="15分前"){
-                    tm=900000;
-                }else if(item=="30分前"){
-                    tm=1800000;
-                }else {
-                    tm=3600000;
+                if (item == "5分前") {
+                    tm = 300000;
+                } else if (item == "15分前") {
+                    tm = 900000;
+                } else if (item == "30分前") {
+                    tm = 1800000;
+                } else {
+                    tm = 3600000;
                 }
                 val.put("alertTime", tm);
             }
@@ -269,7 +288,7 @@ public class EditScheduleActivity extends AppCompatActivity implements TimePicke
         findViewById(R.id.setMap).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(enableEdit) {
+                if (enableEdit) {
                     // クリック時の処理
                     try {
                         PlacePicker.IntentBuilder intentBuilder =
@@ -300,7 +319,7 @@ public class EditScheduleActivity extends AppCompatActivity implements TimePicke
 
     @Override
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        if(enableEdit) {
+        if (enableEdit) {
             this.hour = hourOfDay;
             this.minute = minute;
             timeTextView.setText(String.format(Locale.JAPAN, "%02d:%02d", hourOfDay, minute));
@@ -308,7 +327,7 @@ public class EditScheduleActivity extends AppCompatActivity implements TimePicke
     }
 
     public void showTimePickerDialog(View v) {
-        if(enableEdit) {
+        if (enableEdit) {
             DialogFragment newFragment = new TimePick();
             newFragment.show(getSupportFragmentManager(), "timePicker");
         }

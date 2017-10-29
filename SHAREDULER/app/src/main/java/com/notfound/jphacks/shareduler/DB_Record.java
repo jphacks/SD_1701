@@ -10,6 +10,22 @@ public class DB_Record {
     private double gps_latitude;
     private double gps_longitude;
     private int id;
+    private int mode;
+    private long t;
+    private long a;
+    private int noticeFlag;
+
+    public DB_Record(double latitude, double longitude, double gps_latitude, double gps_longitude, int id, int mode, long t, long a, int noticeFlag) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.gps_latitude = gps_latitude;
+        this.gps_longitude = gps_longitude;
+        this.id = id;
+        this.mode = mode;
+        this.t = t;
+        this.a = a;
+        this.noticeFlag = noticeFlag;
+    }
 
     public double getLatitude() {
         return latitude;
@@ -45,22 +61,5 @@ public class DB_Record {
 
     public int getNoticeFlag() {
         return noticeFlag;
-    }
-
-    private int mode;
-    private long t;
-    private long a;
-    private int noticeFlag;
-
-    public DB_Record(double latitude, double longitude, double gps_latitude, double gps_longitude, int id, int mode, long t, long a, int noticeFlag) {
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.gps_latitude = gps_latitude;
-        this.gps_longitude = gps_longitude;
-        this.id = id;
-        this.mode = mode;
-        this.t = t;
-        this.a = a;
-        this.noticeFlag = noticeFlag;
     }
 }

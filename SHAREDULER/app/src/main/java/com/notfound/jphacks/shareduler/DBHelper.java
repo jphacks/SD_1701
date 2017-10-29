@@ -25,12 +25,12 @@ public class DBHelper extends SQLiteOpenHelper {
                     + " noticeFlag integer not null"
                     + ")";
 
-    public DBHelper(Context context ){
-        super( context, DB, null, DB_VERSION );
+    public DBHelper(Context context) {
+        super(context, DB, null, DB_VERSION);
     }
 
     @Override
-    public void onCreate( SQLiteDatabase db ) {
+    public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_TABLE);
     }
 

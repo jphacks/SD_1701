@@ -27,8 +27,8 @@ public class GPSListener extends Activity implements LocationListener {
         _locationManager = locationManager;
         _locationManager.removeUpdates(this);
         Location location = _locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        this.latitude=location.getLatitude();
-        this.longitude=location.getLongitude();
+        this.latitude = location.getLatitude();
+        this.longitude = location.getLongitude();
 
         _context = context;
         if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION)
@@ -56,12 +56,12 @@ public class GPSListener extends Activity implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
         Log.d("onLocationChanged", "が発生しました");
-        this.longitude=location.getLongitude();
-        this.latitude=location.getLatitude();
+        this.longitude = location.getLongitude();
+        this.latitude = location.getLatitude();
         final SharedPreferences data = _context.getSharedPreferences("save_data", Context.MODE_PRIVATE);
         final SharedPreferences.Editor editor = data.edit();
-        editor.putFloat("longitude", (float)this.longitude);
-        editor.putFloat("latitude",(float)this.latitude);
+        editor.putFloat("longitude", (float) this.longitude);
+        editor.putFloat("latitude", (float) this.latitude);
         editor.apply();
 
 

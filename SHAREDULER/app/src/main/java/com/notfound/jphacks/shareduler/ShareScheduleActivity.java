@@ -20,7 +20,6 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.google.android.gms.location.places.ui.PlacePicker;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,11 +29,13 @@ import java.util.Date;
 
 
 public class ShareScheduleActivity extends AppCompatActivity {
+    DaySchedule ds = new DaySchedule();
     private TextView dateTextView;
     private TextView timeTextView;
     private EditText editTextSchedule;
     private TextView editTextLocation;
-    DaySchedule ds = new DaySchedule();
+    private int mode = 0;
+    private long alertTime = 300000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,10 +50,12 @@ public class ShareScheduleActivity extends AppCompatActivity {
 
         final ContentValues val = new ContentValues();
         SharedPreferences data = getSharedPreferences("save_data", Context.MODE_PRIVATE);
-        final int ci = data.getInt("ID",-1);
+        final int ci = data.getInt("ID", -1);
         val.put("creatorName", ci);
         val.put("mode", data.getInt("MODE", 0));
         val.put("alertTime", data.getLong("ALERT", 300000));
+        mode = data.getInt("MODE", 0);
+        alertTime = data.getLong("ALERT", 300000);
 
 
         // uriに「event://shareduler?url=xxxxxxxxx」が入る
@@ -64,11 +67,10 @@ public class ShareScheduleActivity extends AppCompatActivity {
         //Toast.makeText(getApplicationContext(), u, Toast.LENGTH_SHORT).show();
 
         final JsonObjectRequest getRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-                new Response.Listener<JSONObject>()
-                {
+                new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        try{
+                        try {
                             //Toast.makeText(getApplicationContext(), String.valueOf(response.getInt("dateMillis")), Toast.LENGTH_SHORT).show();
                             String schedule = response.getString("schedule");
                             long dateMillis = response.getLong("dateMillis");
@@ -77,8 +79,8 @@ public class ShareScheduleActivity extends AppCompatActivity {
                             double longitude = response.getDouble("longitude");
                             int creatorName = response.getInt("creatorName");
 
-                            if(creatorName==ci){
-                                Toast.makeText(getApplicationContext(), "自分で作成したイベントです" , Toast.LENGTH_LONG).show();
+                            if (creatorName == ci) {
+                                Toast.makeText(getApplicationContext(), "自分で作成したイベントです", Toast.LENGTH_LONG).show();
                                 Intent intent;
                                 intent = new Intent(getApplicationContext(), MainActivity.class);
                                 startActivity(intent);
@@ -105,18 +107,17 @@ public class ShareScheduleActivity extends AppCompatActivity {
                             //Toast.makeText(getApplicationContext(), String.valueOf(ds.getLat()), Toast.LENGTH_SHORT).show();
                             //Toast.makeText(getApplicationContext(), String.valueOf(ds.getLon()), Toast.LENGTH_SHORT).show();
 
-                        }catch (JSONException je){
-                            Toast.makeText(getApplicationContext(), je.toString() , Toast.LENGTH_SHORT).show();
+                        } catch (JSONException je) {
+                            Toast.makeText(getApplicationContext(), je.toString(), Toast.LENGTH_SHORT).show();
                             finish();
                         }
 
                     }
                 },
-                new Response.ErrorListener()
-                {
+                new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(getApplicationContext(), error.toString() , Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_SHORT).show();
                         finish();
                     }
                 }
@@ -141,7 +142,9 @@ public class ShareScheduleActivity extends AppCompatActivity {
                 val.put("noticeFlag", 0);
 
                 try {
-                    db.insert( "calendarData", null, val);
+                    long id = db.insert( "calendarData", null, val);
+                    AlarmService.update_serverDB(db, getApplicationContext(), (int)id);
+
                     //Toast.makeText(v.getContext(), "データを保存しました", Toast.LENGTH_SHORT).show();
                 } catch (Exception e) {
                     Toast.makeText(v.getContext(), "データの保存に失敗しました", Toast.LENGTH_SHORT).show();
@@ -151,7 +154,7 @@ public class ShareScheduleActivity extends AppCompatActivity {
                 startActivity(intent);
             }
 
-    });
+        });
 
         findViewById(R.id.buttonCancel).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -178,6 +181,7 @@ public class ShareScheduleActivity extends AppCompatActivity {
         Spinner spinner1 = (Spinner) findViewById(R.id.spinner1);
         // SpinnerにAdapterを設定
         spinner1.setAdapter(adapter1);
+        spinner1.setSelection(mode);
 
         spinner1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -186,13 +190,13 @@ public class ShareScheduleActivity extends AppCompatActivity {
                 // 選択したアイテムを取得
                 String item = (String) spinner1.getSelectedItem();
                 int mode;
-                if(item=="徒歩"){
-                    mode=0;
-                }else if(item=="自転車"){
-                    mode=1;
-                }else if(item=="車"){
-                    mode=2;
-                }else {
+                if (item == "徒歩") {
+                    mode = 0;
+                } else if (item == "自転車") {
+                    mode = 1;
+                } else if (item == "車") {
+                    mode = 2;
+                } else {
                     mode = 3;
                 }
                 val.put("mode", mode);
@@ -214,6 +218,15 @@ public class ShareScheduleActivity extends AppCompatActivity {
         Spinner spinner2 = (Spinner) findViewById(R.id.spinner2);
 // SpinnerにAdapterを設定
         spinner2.setAdapter(adapter2);
+        if (alertTime == 300000) {
+            spinner2.setSelection(0);
+        } else if (alertTime == 900000) {
+            spinner2.setSelection(1);
+        } else if (alertTime == 1800000) {
+            spinner2.setSelection(2);
+        } else {
+            spinner2.setSelection(3);
+        }
 
 
         spinner2.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -223,14 +236,14 @@ public class ShareScheduleActivity extends AppCompatActivity {
                 // 選択したアイテムを取得
                 String item = (String) spinner2.getSelectedItem();
                 long tm;
-                if(item=="5分前"){
-                    tm=300000;
-                }else if(item=="15分前"){
-                    tm=900000;
-                }else if(item=="30分前"){
-                    tm=1800000;
-                }else {
-                    tm=3600000;
+                if (item == "5分前") {
+                    tm = 300000;
+                } else if (item == "15分前") {
+                    tm = 900000;
+                } else if (item == "30分前") {
+                    tm = 1800000;
+                } else {
+                    tm = 3600000;
                 }
                 val.put("alertTime", tm);
             }

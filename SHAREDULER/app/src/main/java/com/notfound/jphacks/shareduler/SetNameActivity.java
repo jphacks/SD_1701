@@ -1,7 +1,6 @@
 package com.notfound.jphacks.shareduler;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -38,7 +37,7 @@ public class SetNameActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // クリック時の処理
                 String text = editName.getText().toString();
-                if(text.length() == 0){
+                if (text.length() == 0) {
                     Toast.makeText(v.getContext(), "名前を入力してください", Toast.LENGTH_SHORT).show();
                 } else {
                     int id;
@@ -55,35 +54,33 @@ public class SetNameActivity extends AppCompatActivity {
                         editor.putLong("ALERT", 300000);
 
                         final JsonObjectRequest getRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-                                new Response.Listener<JSONObject>()
-                                {
+                                new Response.Listener<JSONObject>() {
                                     @Override
                                     public void onResponse(JSONObject response) {
-                                        try{
+                                        try {
                                             //Toast.makeText(getApplicationContext(), response.getString("url"), Toast.LENGTH_SHORT).show();
                                             int id = response.getInt("id");
-                                            editor.putInt("ID",id);
+                                            editor.putInt("ID", id);
                                             //Toast.makeText(getApplicationContext(), String.valueOf(id) , Toast.LENGTH_SHORT).show();
                                             editor.apply();
                                             finish();
-                                        }catch (JSONException je){
-                                            Toast.makeText(getApplicationContext(), je.toString() , Toast.LENGTH_SHORT).show();
+                                        } catch (JSONException je) {
+                                            Toast.makeText(getApplicationContext(), je.toString(), Toast.LENGTH_SHORT).show();
                                         }
 
                                     }
                                 },
-                                new Response.ErrorListener()
-                                {
+                                new Response.ErrorListener() {
                                     @Override
                                     public void onErrorResponse(VolleyError error) {
-                                        Toast.makeText(getApplicationContext(), error.toString() , Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_SHORT).show();
                                     }
                                 }
                         );
                         RequestSingleton.getInstance(getApplicationContext()).addToRequestQueue(getRequest);
 
                     } catch (UnsupportedEncodingException e) {
-                        Toast.makeText(getApplicationContext(), e.toString() , Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), e.toString(), Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -95,7 +92,7 @@ public class SetNameActivity extends AppCompatActivity {
     @Override
     public boolean dispatchKeyEvent(KeyEvent e) {
         // バックボタンが押されたときの処理
-        if(e.getKeyCode() == KeyEvent.KEYCODE_BACK && e.getAction() == KeyEvent.ACTION_DOWN) {
+        if (e.getKeyCode() == KeyEvent.KEYCODE_BACK && e.getAction() == KeyEvent.ACTION_DOWN) {
             // trueを返すことでbackKeyの動作を無効化
             return true;
         }

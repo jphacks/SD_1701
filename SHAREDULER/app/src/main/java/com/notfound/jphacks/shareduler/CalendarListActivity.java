@@ -1,13 +1,9 @@
 package com.notfound.jphacks.shareduler;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
@@ -15,23 +11,15 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.app.ShareCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.util.TypedValue;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import com.baoyz.swipemenulistview.SwipeMenu;
 import com.baoyz.swipemenulistview.SwipeMenuCreator;
 import com.baoyz.swipemenulistview.SwipeMenuItem;
@@ -46,9 +34,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static com.notfound.jphacks.shareduler.R.id.date;
 
@@ -56,13 +41,12 @@ import static com.notfound.jphacks.shareduler.R.id.date;
 public class CalendarListActivity extends AppCompatActivity {
 
 
-
     private int dp2px(int dp) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
                 getResources().getDisplayMetrics());
     }
 
-    private void resetList(SQLiteDatabase db, long time, ArrayList<DaySchedule> list){
+    private void resetList(SQLiteDatabase db, long time, ArrayList<DaySchedule> list) {
         list.clear();
         Cursor cursor = null;
         Date d = new Date();
@@ -73,33 +57,33 @@ public class CalendarListActivity extends AppCompatActivity {
         c.add(Calendar.DAY_OF_MONTH, 1);
         long e = c.getTimeInMillis();
 
-        try{
-            String query ="select id, schedule, dateMillis, placeName, latitude, longitude, creatorName, url" +
+        try {
+            String query = "select id, schedule, dateMillis, placeName, latitude, longitude, creatorName, url" +
                     " from calendarData" +
                     " where dateMillis >= " + String.valueOf(s) +
                     " and dateMillis < " + String.valueOf(e) +
                     " order by dateMillis";
             cursor = db.rawQuery(query, null);
 
-            int indexID = cursor.getColumnIndex( "id" );
-            int indexSchedule = cursor.getColumnIndex( "schedule" );
-            int indexTime = cursor.getColumnIndex( "dateMillis" );
-            int indexPlace = cursor.getColumnIndex( "placeName" );
-            int indexLat = cursor.getColumnIndex( "latitude" );
-            int indexLon = cursor.getColumnIndex( "longitude" );
-            int indexCreator = cursor.getColumnIndex( "creatorName" );
-            int indexURL = cursor.getColumnIndex( "url" );
+            int indexID = cursor.getColumnIndex("id");
+            int indexSchedule = cursor.getColumnIndex("schedule");
+            int indexTime = cursor.getColumnIndex("dateMillis");
+            int indexPlace = cursor.getColumnIndex("placeName");
+            int indexLat = cursor.getColumnIndex("latitude");
+            int indexLon = cursor.getColumnIndex("longitude");
+            int indexCreator = cursor.getColumnIndex("creatorName");
+            int indexURL = cursor.getColumnIndex("url");
 
-            while( cursor.moveToNext() ){
+            while (cursor.moveToNext()) {
                 // 検索結果をCursorから取り出す
                 int id = cursor.getInt(indexID);
-                String schedule  = cursor.getString(indexSchedule);
+                String schedule = cursor.getString(indexSchedule);
                 long t = cursor.getLong(indexTime);
-                String location  = cursor.getString(indexPlace);
+                String location = cursor.getString(indexPlace);
                 double lat = cursor.getDouble(indexLat);
                 double lon = cursor.getDouble(indexLon);
                 int ci = cursor.getInt(indexCreator);
-                String url  = cursor.getString(indexURL);
+                String url = cursor.getString(indexURL);
 
                 DaySchedule ds = new DaySchedule();
                 ds.setID(id);
@@ -108,24 +92,23 @@ public class CalendarListActivity extends AppCompatActivity {
                 ds.setLat(lat);
                 ds.setLon(lon);
                 ds.setURL(url);
-                if(location==null){
+                if (location == null) {
                     ds.setLocation(" ");
-                }else {
+                } else {
                     ds.setLocation(location);
                 }
                 ds.setCreator(ci);
                 list.add(ds);
             }
-        }
-        finally{
+        } finally {
             // Cursorを忘れずにcloseする
-            if( cursor != null ){
+            if (cursor != null) {
                 cursor.close();
             }
         }
     }
 
-    private void getURL(final DaySchedule ds, final SQLiteDatabase db ){
+    private void getURL(final DaySchedule ds, final SQLiteDatabase db) {
         //RequestQueue queue = RequestSingleton.getInstance(this.getApplicationContext()).getRequestQueue();
         String result = "エラーが発生しました";
         String url = "http://150.95.184.107/insert_event.php?";
@@ -148,11 +131,10 @@ public class CalendarListActivity extends AppCompatActivity {
             //Toast.makeText(getApplicationContext(), url, Toast.LENGTH_LONG).show();
 
             final JsonObjectRequest getRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-                    new Response.Listener<JSONObject>()
-                    {
+                    new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
-                            try{
+                            try {
                                 //Toast.makeText(getApplicationContext(), response.getString("url"), Toast.LENGTH_SHORT).show();
                                 ContentValues val = new ContentValues();
                                 val.put("url", response.getString("url"));
@@ -164,31 +146,31 @@ public class CalendarListActivity extends AppCompatActivity {
                                     ShareCompat.IntentBuilder builder = ShareCompat.IntentBuilder.from(CalendarListActivity.this);
                                     builder.setChooserTitle("アプリを選択");
                                     builder.setSubject("イベントをシェアしましょう");
-                                    builder.setText("http://150.95.184.107/share.php?url="+response.getString("url"));
+                                    builder.setText("http://150.95.184.107/share.php?url=" + response.getString("url"));
                                     builder.setType("text/plain");
                                     builder.startChooser();
+                                    AlarmService.update_serverDB(db, getApplicationContext(), ds.getID());
 
                                 } catch (Exception e) {
                                     Toast.makeText(getApplicationContext(), "データの保存に失敗しました", Toast.LENGTH_SHORT).show();
                                 }
-                            }catch (JSONException je){
-                                Toast.makeText(getApplicationContext(), je.toString() , Toast.LENGTH_SHORT).show();
+                            } catch (JSONException je) {
+                                Toast.makeText(getApplicationContext(), je.toString(), Toast.LENGTH_SHORT).show();
                             }
 
                         }
                     },
-                    new Response.ErrorListener()
-                    {
+                    new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError error) {
-                            Toast.makeText(getApplicationContext(), error.toString() , Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_SHORT).show();
                         }
                     }
             );
             RequestSingleton.getInstance(this).addToRequestQueue(getRequest);
 
         } catch (UnsupportedEncodingException e) {
-            Toast.makeText(getApplicationContext(), e.toString() , Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), e.toString(), Toast.LENGTH_SHORT).show();
         }
 
     }
@@ -203,8 +185,8 @@ public class CalendarListActivity extends AppCompatActivity {
         final SQLiteDatabase db = cdbHelper.getWritableDatabase();
 
         // windowの大きさの調整
-        int width = (int)(getResources().getDisplayMetrics().widthPixels*0.80);
-        int height = (int)(getResources().getDisplayMetrics().heightPixels*0.75);
+        int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.80);
+        int height = (int) (getResources().getDisplayMetrics().heightPixels * 0.75);
 
         getWindow().setLayout(width, height);
         // setDragEdge(SwipeBackLayout.DragEdge.LEFT);
@@ -214,7 +196,7 @@ public class CalendarListActivity extends AppCompatActivity {
         final long time = intent.getLongExtra("TIME", 0L);
 
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd");
-        ((TextView)findViewById(date)).setText(sdf.format(time));
+        ((TextView) findViewById(date)).setText(sdf.format(time));
 
 
         final SwipeMenuListView listView = (SwipeMenuListView) findViewById(R.id.listView);
@@ -274,27 +256,28 @@ public class CalendarListActivity extends AppCompatActivity {
                         break;
                     case 1:
                         // share
-                        if(list.get(position).getURL()==null) {
+                        if (list.get(position).getURL() == null) {
                             new AlertDialog.Builder(CalendarListActivity.this)
                                     .setTitle("共有")
-                                    .setMessage("このイベントを共有しますか？\n(共有すると編集できなくなります)")
+                                    .setMessage("このイベントを共有しますか？\n(共有すると編集・削除ができなくなります)")
                                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
                                             // OK button pressed
                                             getURL(list.get(position), db);
+
                                         }
                                     })
                                     .setNegativeButton("Cancel", null)
                                     .show();
 
-                        }else{
+                        } else {
                             String url = list.get(position).getURL();
                             // builderの生成　ShareCompat.IntentBuilder.from(Context context);
                             ShareCompat.IntentBuilder builder = ShareCompat.IntentBuilder.from(CalendarListActivity.this);
                             builder.setChooserTitle("アプリを選択");
                             builder.setSubject("イベントをシェアしましょう");
-                            builder.setText("http://150.95.184.107/share.php?url="+url);
+                            builder.setText("http://150.95.184.107/share.php?url=" + url);
                             builder.setType("text/plain");
                             builder.startChooser();
 
@@ -303,17 +286,25 @@ public class CalendarListActivity extends AppCompatActivity {
 
                     case 2:
                         // list
-                        Intent intent_list;
-                        intent_list = new Intent(getApplicationContext(), MemberListActivity.class);
-                        intent_list.putExtra("ID", list.get(position).getID());
-                        startActivity(intent_list);
+                        if (list.get(position).getURL() == null) {
+                            Toast.makeText(getApplicationContext(), "イベントを共有するとリストを表示できます", Toast.LENGTH_LONG).show();
+                        } else {
+                            Intent intent_list;
+                            intent_list = new Intent(getApplicationContext(), MemberListActivity.class);
+                            intent_list.putExtra("ID", list.get(position).getID());
+                            startActivity(intent_list);
+                        }
                         break;
 
                     case 3:
                         // delete
-                        db.delete("calendarData", "id = " + String.valueOf(list.get(position).getID()), null);
-                        list.remove(position);
-                        reload();
+                        if(list.get(position).getURL()==null) {
+                            db.delete("calendarData", "id = " + String.valueOf(list.get(position).getID()), null);
+                            list.remove(position);
+                            reload();
+                        } else{
+                            Toast.makeText(getApplicationContext(), "共有されたイベントは削除できません" , Toast.LENGTH_SHORT).show();
+                        }
                         break;
                 }
                 // false : close the menu; true : not close the menu
@@ -340,7 +331,7 @@ public class CalendarListActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRestart(){
+    public void onRestart() {
         super.onRestart();
         reload();
     }

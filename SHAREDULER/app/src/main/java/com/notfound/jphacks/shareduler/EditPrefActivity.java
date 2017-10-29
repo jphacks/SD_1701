@@ -14,16 +14,12 @@ import android.widget.Toast;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Calendar;
 
 public class EditPrefActivity extends AppCompatActivity {
 
@@ -36,6 +32,9 @@ public class EditPrefActivity extends AppCompatActivity {
 
         final SharedPreferences data = getSharedPreferences("save_data", Context.MODE_PRIVATE);
         final SharedPreferences.Editor editor = data.edit();
+
+        int mode = data.getInt("MODE", 0);
+        long alertTime = data.getLong("ALERT", 300000);
 
         String name = data.getString("NAME", "mikami");
         editName.setText(name);
@@ -71,7 +70,7 @@ public class EditPrefActivity extends AppCompatActivity {
                     );
                     RequestSingleton.getInstance(getApplicationContext()).addToRequestQueue(getRequest);
                     editor.apply();
-                }catch (UnsupportedEncodingException e) {
+                } catch (UnsupportedEncodingException e) {
                     Toast.makeText(getApplicationContext(), e.toString(), Toast.LENGTH_SHORT).show();
                 }
                 finish();
@@ -94,6 +93,7 @@ public class EditPrefActivity extends AppCompatActivity {
         Spinner spinner1 = (Spinner) findViewById(R.id.spinner1);
         // SpinnerにAdapterを設定
         spinner1.setAdapter(adapter1);
+        spinner1.setSelection(mode);
 
         spinner1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -102,13 +102,13 @@ public class EditPrefActivity extends AppCompatActivity {
                 // 選択したアイテムを取得
                 String item = (String) spinner1.getSelectedItem();
                 int mode;
-                if(item=="徒歩"){
-                    mode=0;
-                }else if(item=="自転車"){
-                    mode=1;
-                }else if(item=="車"){
-                    mode=2;
-                }else {
+                if (item == "徒歩") {
+                    mode = 0;
+                } else if (item == "自転車") {
+                    mode = 1;
+                } else if (item == "車") {
+                    mode = 2;
+                } else {
                     mode = 3;
                 }
                 editor.putInt("MODE", mode);
@@ -130,6 +130,17 @@ public class EditPrefActivity extends AppCompatActivity {
         Spinner spinner2 = (Spinner) findViewById(R.id.spinner2);
 // SpinnerにAdapterを設定
         spinner2.setAdapter(adapter2);
+        spinner2.setAdapter(adapter2);
+        if (alertTime == 300000) {
+            spinner2.setSelection(0);
+        } else if (alertTime == 900000) {
+            spinner2.setSelection(1);
+        } else if (alertTime == 1800000) {
+            spinner2.setSelection(2);
+        } else {
+            spinner2.setSelection(3);
+        }
+
 
 
         spinner2.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -139,14 +150,14 @@ public class EditPrefActivity extends AppCompatActivity {
                 // 選択したアイテムを取得
                 String item = (String) spinner2.getSelectedItem();
                 long tm;
-                if(item=="5分前"){
-                    tm=300000;
-                }else if(item=="15分前"){
-                    tm=900000;
-                }else if(item=="30分前"){
-                    tm=1800000;
-                }else {
-                    tm=3600000;
+                if (item == "5分前") {
+                    tm = 300000;
+                } else if (item == "15分前") {
+                    tm = 900000;
+                } else if (item == "30分前") {
+                    tm = 1800000;
+                } else {
+                    tm = 3600000;
                 }
                 editor.putLong("ALERT", tm);
             }
